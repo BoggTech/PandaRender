@@ -1,5 +1,6 @@
-from direct.task import Task
 from panda3d.core import WindowProperties
+from direct.task import Task
+from direct.showbase.DirectObject import DirectObject
 
 
 def __resize_window(w, h):
@@ -22,10 +23,9 @@ def resize_and_screenshot(w, h, screenshot_name="PandaRender.png"):
     :param screenshot_name: The name (and, optionally, path) of the screenshot.
     """
     prev_w, prev_h = base.win.getXSize(), base.win.getYSize()
+    do = DirectObject()
+    do.acceptOnce("window-event", __screenshot, extraArgs=[w, h, prev_w, prev_h, screenshot_name])
     __resize_window(w, h)
-    # not sure why it's trying to pass an argument to the lambda so x does nothing but prevent error. tasks are weird
-    taskMgr.add(__screenshot_task, "PandaRender", extraArgs=[w, h, screenshot_name],
-                uponDeath=lambda x: __resize_window(prev_w, prev_h))
 
 
 def scale_and_screenshot(w, h, screenshot_name):
@@ -40,18 +40,18 @@ def scale_and_screenshot(w, h, screenshot_name):
     resize_and_screenshot(x * w, y * h, screenshot_name)
 
 
-def __screenshot_task(w, h, screenshot_name):
-    """Task that waits for the ShowBase window's bounds to be [w, h] before taking a screenshot.
+def __screenshot(w, h, prev_w, prev_h, screenshot_name, *args):
+    """Method that checks if the ShowBase window's bounds are [w, h] before rendering the frame and taking a screenshot.
+    If this check fails, nothing is done. After taking a screenshot, the window is scaled to [prev_w, prev_h].
 
     :param w: The desired width of the screenshot.
     :param h: The desired height of the screenshot.
+    :param prev_w: The width to revert to when the screenshot has been taken.
+    :param prev_h: The height to revert to when the screenshot has been taken.
     :param screenshot_name: The name (and, optionally, path) of the screenshot."""
-    curr_w, curr_h = base.win.getProperties().getXSize(), base.win.getProperties().getYSize()
 
-    if curr_w != w or curr_h != h:
-        return Task.cont
-    else:
+    curr_w, curr_h = base.win.getProperties().getXSize(), base.win.getProperties().getYSize()
+    if curr_w == w and curr_h == h:
         base.graphicsEngine.renderFrame()
         base.screenshot(screenshot_name, False)
-        return Task.done
-
+    __resize_window(prev_w, prev_h)
