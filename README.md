@@ -6,6 +6,12 @@ size and the method will handle sizing it back to what it was before.
 
 I made this for a friend who wanted to grab some high-resolution images of some Toontown models.
 
+> [!IMPORTANT]  
+> These methods will not do anything if Panda3D fails to scale to the desired window size, for any reason. This mostly
+> happens when you're scaling the window past the bounds of your monitor. I haven't tested this on any platform other 
+> than Windows 10, and it's generally thrown together, so your mileage may vary.
+
+
 ## Methods
 
 ### resize_and_screenshot
