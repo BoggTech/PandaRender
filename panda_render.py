@@ -1,7 +1,9 @@
 from panda3d.core import WindowProperties
 from direct.task import Task
 from direct.showbase.DirectObject import DirectObject
+from direct.showbase.Messenger import Messenger
 
+RENDER_COMPLETE_MSG = 'pandarender-complete'
 
 def __resize_window(w, h):
     """Method that resizes the ShowBase window.
@@ -43,6 +45,7 @@ def scale_and_screenshot(w, h, screenshot_name):
 def __screenshot(w, h, prev_w, prev_h, screenshot_name, *args):
     """Method that checks if the ShowBase window's bounds are [w, h] before rendering the frame and taking a screenshot.
     If this check fails, nothing is done. After taking a screenshot, the window is scaled to [prev_w, prev_h].
+    Broadcasts event 'pandarender-complete' with a boolean describing if the screenshot happened or not.
 
     :param w: The desired width of the screenshot.
     :param h: The desired height of the screenshot.
@@ -54,4 +57,7 @@ def __screenshot(w, h, prev_w, prev_h, screenshot_name, *args):
     if curr_w == w and curr_h == h:
         base.graphicsEngine.renderFrame()
         base.screenshot(screenshot_name, False)
+        messenger.send(RENDER_COMPLETE_MSG, [True])
+    else:
+        messenger.send(RENDER_COMPLETE_MSG, [False])
     __resize_window(prev_w, prev_h)
